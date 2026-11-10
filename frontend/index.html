@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ta">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1F2A5A">
+  <title>ASHA Vaani</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Madurai:wght@400;600;700&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="who">
+      <span class="brand">ASHA Vaani</span>
+      <span class="asha" id="ashaName"></span>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button data-lang="ta" aria-pressed="true">தமிழ்</button>
+      <button data-lang="hi" aria-pressed="false">हिंदी</button>
+    </div>
+  </header>
+
+  <div class="offline" id="offlineBar" hidden></div>
+
+  <main>
+    <nav class="types" role="tablist" aria-label="Visit type">
+      <button role="tab" data-type="ANC" aria-selected="true"></button>
+      <button role="tab" data-type="HBNC" aria-selected="false"></button>
+      <button role="tab" data-type="IMMUNISATION" aria-selected="false"></button>
+    </nav>
+
+    <section class="recorder" aria-live="polite">
+      <button class="mic" id="micBtn" aria-label="Record">
+        <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+          <circle class="ring-bg" cx="100" cy="100" r="92"/>
+          <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="92"/>
+        </svg>
+        <svg class="mic-glyph" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 1 0-7 0v6A3.5 3.5 0 0 0 12 15Zm6-3.5a6 6 0 0 1-12 0H4.5a7.5 7.5 0 0 0 6.75 7.46V21h1.5v-2.04A7.5 7.5 0 0 0 19.5 11.5H18Z"/>
+        </svg>
+        <span class="secs" id="secs"></span>
+      </button>
+      <p class="hint" id="hint"></p>
+      <form class="typed" id="typedForm" hidden>
+        <input id="typedInput" autocomplete="off">
+        <button type="submit" id="typedBtn"></button>
+      </form>
+    </section>
+
+    <section class="entry" id="entry" hidden>
+      <div class="entry-head">
+        <h2 id="entryName"></h2>
+        <button class="play" id="playBtn" aria-label="Play read-back">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+      </div>
+      <div class="match" id="matchBox"></div>
+      <div class="stamps" id="stamps"></div>
+      <dl class="lines" id="lines"></dl>
+      <p class="heard" id="heard"></p>
+      <div class="actions">
+        <button class="yes" id="yesBtn"></button>
+        <button class="fix" id="fixBtn"></button>
+      </div>
+    </section>
+
+    <section class="pending" id="pending" hidden>
+      <h3 id="pendingTitle"></h3>
+      <ul id="pendingList"></ul>
+    </section>
+  </main>
+
+  <footer class="brief">
+    <button id="briefBtn">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9Zm.75 4.5v4.19l3.03 3.03-1.06 1.06-3.47-3.47V7.5Z"/></svg>
+      <span id="briefLabel"></span>
+    </button>
+    <ol class="brief-list" id="briefList" hidden></ol>
+  </footer>
+
+  <audio id="player" preload="none"></audio>
+  <script src="app.js"></script>
+</body>
+</html>

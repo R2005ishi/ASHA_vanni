@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ASHA Vaani · ANM review</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Madurai:wght@400;600;700&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --ink:#1F2A5A; --ink-soft:#4A557F; --paper:#EEF2F0; --sheet:#FBFCFB; --rule:#C9D4DF;
+            --stamp:#B3261E; --amber:#9A5B00; --saved:#1B6E45; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:400 16px/1.45 "Mukta","Hind Madurai",system-ui,sans-serif; }
+    header { background:var(--ink); color:var(--sheet); padding:14px 24px; display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between; }
+    header h1 { margin:0; font-size:20px; }
+    header p { margin:0; opacity:.8; font-size:14px; }
+    main { max-width:1200px; margin:0 auto; padding:20px 24px 48px; }
+    .bar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .counts { display:flex; gap:28px; }
+    .counts b { display:block; font-size:30px; line-height:1; }
+    .counts span { font-size:14px; color:var(--ink-soft); }
+    .counts .alert b { color:var(--stamp); }
+    .filters { display:flex; gap:6px; }
+    .filters button, .export { font:inherit; font-size:15px; border:1.5px solid var(--ink); background:var(--sheet); color:var(--ink); border-radius:999px; padding:6px 14px; cursor:pointer; text-decoration:none; }
+    .filters button[aria-pressed="true"] { background:var(--ink); color:var(--sheet); }
+    .export { background:var(--ink); color:var(--sheet); border-radius:10px; }
+    .table-wrap { overflow-x:auto; background:var(--sheet); border:1.5px solid var(--rule); border-radius:14px; }
+    table { border-collapse:collapse; width:100%; min-width:880px; }
+    th, td { text-align:left; padding:12px 14px; border-bottom:1px solid var(--rule); vertical-align:top; }
+    th { font-size:14px; color:var(--ink-soft); font-weight:600; background:#F3F6F8; }
+    tr.flagged td:first-child { box-shadow: inset 4px 0 0 var(--stamp); }
+    tr.reviewed { color:var(--ink-soft); }
+    .name { font-weight:700; font-size:17px; }
+    .sub { font-size:13px; color:var(--ink-soft); }
+    .stamp { display:inline-block; border:2px solid var(--stamp); color:var(--stamp); border-radius:5px; padding:0 7px; margin:0 4px 4px 0; font-weight:700; font-size:14px; }
+    .stamp.medium { border-color:var(--amber); color:var(--amber); }
+    .vals { font-size:15px; }
+    .heard { font-size:13px; color:var(--ink-soft); max-width:36ch; }
+    td button { font:inherit; font-size:14px; border:1.5px solid var(--saved); color:var(--saved); background:none; border-radius:8px; padding:4px 10px; cursor:pointer; }
+    .done { color:var(--saved); font-size:14px; font-weight:600; }
+    .empty { padding:40px; text-align:center; color:var(--ink-soft); }
+    :focus-visible { outline:3px solid var(--ink); outline-offset:2px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div><h1>ANM review</h1><p>Visits recorded by voice and confirmed by the ASHA. Flags are for review, not a diagnosis.</p></div>
+    <a class="export" href="/api/export.csv">Download CSV for portal entry</a>
+  </header>
+  <main>
+    <div class="bar">
+      <div class="counts">
+        <div><b id="cTotal">0</b><span>confirmed visits</span></div>
+        <div class="alert"><b id="cFlag">0</b><span>flags to review</span></div>
+        <div><b id="cAsha">0</b><span>ASHAs reporting</span></div>
+      </div>
+      <div class="filters" role="group" aria-label="Filter">
+        <button data-f="flag" aria-pressed="true">Needs review</button>
+        <button data-f="all" aria-pressed="false">All visits</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Patient</th><th>Visit</th><th>Recorded</th><th>Flags</th><th>What the ASHA said</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </main>
+<script>
+const TYPES = { ANC: "Pregnancy check (ANC)", HBNC: "Newborn visit (HBNC)", IMMUNISATION: "Immunisation" };
+let filter = "flag", visits = [];
+
+function summary(v) {
+  const r = v.record || {}, out = [];
+  if (r.gestation_months) out.push(`${r.gestation_months} months`);
+  if (r.bp_systolic) out.push(`BP ${r.bp_systolic}/${r.bp_diastolic ?? "?"}`); else if (r.bp_status_spoken) out.push(`BP ${r.bp_status_spoken}`);
+  if (r.hb != null) out.push(`Hb ${r.hb}`);
+  if (r.ifa_tablets_given) out.push(`IFA ×${r.ifa_tablets_given}`);
+  if (r.baby_age_days != null) out.push(`day ${r.baby_age_days}`);
+  if (r.weight_kg) out.push(`${r.weight_kg} kg`);
+  if (r.temperature_c) out.push(`${r.temperature_c} °C`);
+  if (r.breastfeeding_ok === false) out.push("not feeding");
+  if ((r.vaccines_given || []).length) out.push(r.vaccines_given.join(", "));
+  const comp = (r.complaints || []).filter((c) => !(c === "not feeding" && r.breastfeeding_ok === false));
+  if (comp.length) out.push(comp.join(", "));
+  if (r.next_visit_date) out.push(`next ${r.next_visit_date}`);
+  return out.join(" · ");
+}
+
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+function render() {
+  const flagged = visits.filter((v) => (v.flags || []).length && !v.reviewed);
+  document.getElementById("cTotal").textContent = visits.length;
+  document.getElementById("cFlag").textContent = flagged.length;
+  document.getElementById("cAsha").textContent = new Set(visits.map((v) => v.asha_id)).size;
+  const list = filter === "flag" ? flagged : visits;
+  const tb = document.getElementById("rows"); tb.innerHTML = "";
+  if (!list.length) {
+    const tr = el("tr"); const td = el("td", "empty", filter === "flag" ? "No flags waiting. All clear." : "No visits yet. Records appear here once an ASHA confirms them.");
+    td.colSpan = 6; tr.append(td); tb.append(tr); return;
+  }
+  list.forEach((v) => {
+    const sp = v.patient_spoken || {};
+    const tr = el("tr", ((v.flags || []).length ? "flagged " : "") + (v.reviewed ? "reviewed" : ""));
+    const p = el("td"); p.append(el("div", "name", sp.name || "Unknown"), el("div", "sub", [sp.husband_name, sp.village, v.patient_id].filter(Boolean).join(", ")));
+    const ty = el("td"); ty.append(el("div", null, TYPES[v.visit_type]), el("div", "sub", `${v.asha_id} · ${v.visit_date}`));
+    const rec = el("td", "vals", summary(v));
+    const fl = el("td"); (v.flags || []).forEach((f) => {
+      const same = f.labels.en.toLowerCase().includes(f.detail.toLowerCase());
+      fl.append(el("span", "stamp" + (f.severity === "medium" ? " medium" : ""), same ? f.labels.en : `${f.labels.en}: ${f.detail}`));
+    });
+    const heard = el("td", "heard", v.transcript);
+    const act = el("td");
+    if ((v.flags || []).length) {
+      if (v.reviewed) act.append(el("span", "done", "Reviewed"));
+      else { const b = el("button", null, "Mark reviewed"); b.onclick = () => markReviewed(v.id); act.append(b); }
+    }
+    tr.append(p, ty, rec, fl, heard, act); tb.append(tr);
+  });
+}
+
+async function load() { visits = await (await fetch("/api/visits?status=confirmed")).json(); render(); }
+async function markReviewed(id) { await fetch(`/api/visits/${id}/review`, { method: "POST" }); load(); }
+document.querySelectorAll(".filters button").forEach((b) => b.onclick = () => {
+  filter = b.dataset.f; document.querySelectorAll(".filters button").forEach((x) => x.setAttribute("aria-pressed", x === b)); render();
+});
+load(); setInterval(load, 15000);
+</script>
+</body>
+</html>

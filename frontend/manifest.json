@@ -1,0 +1,10 @@
+{
+  "name": "ASHA Vaani",
+  "short_name": "ASHA Vaani",
+  "description": "Record ASHA home visits by voice in Tamil and Hindi",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#EEF2F0",
+  "theme_color": "#1F2A5A",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

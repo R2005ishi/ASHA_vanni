@@ -1,0 +1,136 @@
+:root {
+  --ink: #1F2A5A;          /* register ink */
+  --ink-soft: #4A557F;
+  --paper: #EEF2F0;        /* cool ledger paper */
+  --sheet: #FBFCFB;
+  --rule: #C9D4DF;         /* faint blue ruling */
+  --rose: #C2185B;         /* ASHA saree rose: record button only */
+  --rose-deep: #8E0F42;
+  --stamp: #B3261E;        /* danger stamp */
+  --amber: #9A5B00;
+  --saved: #1B6E45;
+  --radius-lg: 22px;
+  --font: "Hind Madurai", "Mukta", system-ui, sans-serif;
+}
+html[lang="hi"] { --font: "Mukta", "Hind Madurai", system-ui, sans-serif; }
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100dvh; display: flex; flex-direction: column;
+  background: var(--paper); color: var(--ink);
+  font: 400 19px/1.45 var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+/* ---------- header ---------- */
+.top {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+  background: var(--ink); color: var(--sheet);
+}
+.who { display: flex; flex-direction: column; line-height: 1.2; }
+.brand { font-weight: 700; font-size: 20px; letter-spacing: .01em; }
+.asha { font-size: 15px; opacity: .8; }
+.lang { display: flex; border: 1.5px solid rgba(255,255,255,.5); border-radius: 999px; overflow: hidden; }
+.lang button { background: none; border: 0; color: var(--sheet); padding: 6px 14px; font-size: 16px; }
+.lang button[aria-pressed="true"] { background: var(--sheet); color: var(--ink); font-weight: 600; }
+
+.offline { background: #FFF4D6; color: var(--amber); padding: 8px 16px; font-size: 16px; }
+
+main { flex: 1; width: 100%; max-width: 520px; margin: 0 auto; padding: 16px; }
+
+/* ---------- visit type ---------- */
+.types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.types button {
+  min-height: 56px; padding: 6px 4px; border-radius: 14px; border: 1.5px solid var(--rule);
+  background: var(--sheet); font-size: 16px; line-height: 1.2; font-weight: 600;
+}
+.types button[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: var(--sheet); }
+
+/* ---------- recorder: the one bold element ---------- */
+.recorder { display: flex; flex-direction: column; align-items: center; padding: 28px 0 12px; }
+.mic {
+  position: relative; width: 200px; height: 200px; border-radius: 50%; border: 0;
+  background: var(--rose); color: #fff; display: grid; place-items: center;
+  box-shadow: 0 10px 0 var(--rose-deep);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.mic:active { transform: translateY(6px); box-shadow: 0 4px 0 var(--rose-deep); }
+.mic[disabled] { background: var(--ink-soft); box-shadow: 0 10px 0 var(--ink); }
+.mic-glyph { width: 76px; height: 76px; fill: currentColor; grid-area: 1/1; }
+.ring { position: absolute; inset: -14px; width: calc(100% + 28px); height: calc(100% + 28px); transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 8; }
+.ring-bg { stroke: transparent; }
+.ring-fg { stroke: var(--rose); stroke-linecap: round; stroke-dasharray: 578; stroke-dashoffset: 578; }
+.mic.recording { background: var(--sheet); color: var(--rose); box-shadow: 0 10px 0 var(--rule); }
+.mic.recording .ring-bg { stroke: var(--rule); }
+.mic.recording .mic-glyph { width: 56px; height: 56px; transform: translateY(-14px); }
+.secs { position: absolute; bottom: 44px; font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mic.busy .mic-glyph { animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+.hint { margin: 24px 0 0; text-align: center; max-width: 30ch; color: var(--ink-soft); }
+
+.typed { display: flex; gap: 8px; width: 100%; margin-top: 16px; }
+.typed input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 10px 12px; border: 1.5px dashed var(--ink-soft); border-radius: 12px; background: var(--sheet); }
+.typed button { border: 0; border-radius: 12px; padding: 0 14px; background: var(--ink); color: var(--sheet); font-size: 16px; }
+
+/* ---------- the draft entry: a register line ---------- */
+.entry {
+  margin-top: 8px; background: var(--sheet); border-radius: var(--radius-lg);
+  border: 1.5px solid var(--rule); padding: 18px 18px 20px;
+  animation: lift .25s ease-out;
+}
+@keyframes lift { from { opacity: 0; transform: translateY(12px); } }
+.entry-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.entry h2 { margin: 0; font-size: 26px; line-height: 1.2; }
+.play { flex: none; width: 52px; height: 52px; border-radius: 50%; border: 1.5px solid var(--ink); background: none; display: grid; place-items: center; }
+.play svg { width: 26px; fill: var(--ink); }
+.match { font-size: 15px; color: var(--ink-soft); margin-top: 2px; }
+.match button { margin: 6px 6px 0 0; border: 1.5px solid var(--ink); background: none; border-radius: 10px; padding: 4px 10px; font-size: 15px; }
+
+.stamps { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+.stamp {
+  border: 2.5px solid var(--stamp); color: var(--stamp); border-radius: 6px;
+  padding: 2px 10px; font-weight: 700; font-size: 17px; transform: rotate(-1.5deg);
+}
+.stamp.medium { border-color: var(--amber); color: var(--amber); }
+.stamp small { font-weight: 400; margin-left: 6px; }
+
+.lines { margin: 12px 0 0;
+  background-image: linear-gradient(var(--rule) 1px, transparent 1px);
+  background-size: 100% 48px; background-position: 0 47px; }
+.lines div { display: flex; justify-content: space-between; align-items: baseline; min-height: 48px; padding-top: 10px; gap: 12px; }
+.lines dt { color: var(--ink-soft); font-size: 16px; }
+.lines dd { margin: 0; font-weight: 700; font-size: 20px; text-align: right; }
+.lines .blank dd { font-weight: 400; color: var(--amber); font-size: 16px; border-bottom: 2px dotted var(--amber); }
+.heard { margin: 14px 0 0; font-size: 15px; color: var(--ink-soft); }
+
+.actions { display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; margin-top: 18px; }
+.actions button { min-height: 60px; border-radius: 16px; font-size: 20px; font-weight: 700; }
+.yes { background: var(--saved); color: #fff; border: 0; }
+.fix { background: none; border: 2px solid var(--ink); }
+.entry.saved { border-color: var(--saved); }
+.entry.saved .actions { display: none; }
+
+.pending { margin-top: 24px; }
+.pending h3 { font-size: 17px; margin: 0 0 8px; }
+.pending ul { list-style: none; margin: 0; padding: 0; }
+.pending li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 16px; }
+.pending li button { border: 0; background: none; text-decoration: underline; color: var(--ink); }
+
+/* ---------- morning briefing ---------- */
+.brief { position: sticky; bottom: 0; background: var(--paper); padding: 10px 16px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid var(--rule); }
+.brief > button {
+  width: 100%; max-width: 488px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 54px; border-radius: 16px; border: 2px solid var(--ink); background: var(--sheet); font-weight: 600;
+}
+.brief > button svg { width: 24px; fill: var(--ink); }
+.brief-list { max-height: 38vh; overflow-y: auto; max-width: 488px; margin: 10px auto 0; padding-left: 24px; font-size: 17px; }
+.brief-list li { padding: 4px 0; }
+.brief-list .flag { color: var(--stamp); font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
