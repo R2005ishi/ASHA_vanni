@@ -111,7 +111,10 @@ async def reply(vid: str, audio: UploadFile | None = File(None), mock_text: str 
         return await _confirm(v)
     corr, engine = await llm.extract(transcript, v["visit_type"])
     record = llm.merge(v["record"], corr.record)
-    patient = llm.merge(v["patient_spoken"], corr.patient.model_dump())
+    # The fallback extractor treats the first words as a name ("No, BP 130 by 85" -> "No"),
+    # so only Evon is trusted to change the patient during a correction.
+    patient = (llm.merge(v["patient_spoken"], corr.patient.model_dump())
+               if engine == "evon" else v["patient_spoken"])
     flags = rules.evaluate(v["visit_type"], record)
     v = db.update_visit(vid, record=record, patient_spoken=patient, flags=flags,
                         missing=llm.missing_fields(v["visit_type"], record),
