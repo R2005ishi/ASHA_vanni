@@ -77,7 +77,9 @@ async def _call_evon(transcript: str, visit_type: str, today: date) -> dict:
                 f"{settings.evon_base_url}/chat/completions",
                 headers={"Authorization": f"Bearer {settings.evon_api_key}"},
                 json={"model": settings.evon_model, "messages": messages,
-                      "temperature": 0.0, "max_tokens": 1200},
+                      "temperature": 0.0, "max_tokens": 1200,
+                      # Evon reasons by default; extraction doesn't need it and it adds latency
+                      "chat_template_kwargs": {"enable_thinking": False}},
             )
             resp.raise_for_status()
             content = resp.json()["choices"][0]["message"]["content"]

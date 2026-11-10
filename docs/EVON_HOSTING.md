@@ -1,6 +1,6 @@
 # Running Evon v3.3 for ASHA Vaani
 
-Gnani publishes Evon as **open weights only** (no hosted chat API in their docs as of Oct 2026):
+Gnani publishes Evon as **open weights only** (as of Nov 2026 no Hugging Face inference provider serves it; Friendli offers dedicated endpoints only):
 <https://huggingface.co/gnani/gnani-evon-v3.3-30B-A3B>
 
 ASHA Vaani talks to Evon through the standard **OpenAI-compatible** `/v1/chat/completions`
@@ -34,8 +34,12 @@ and record the demo.
 ```bash
 pip install vllm
 export HF_TOKEN=hf_xxx
-vllm serve gnani/gnani-evon-v3.3-30B-A3B \
+# needs vLLM >= 0.12. Evon is a Nemotron-H hybrid MoE (Mamba2 + Transformer), BF16 ~60 GB.
+pip install "vllm>=0.12"
+vllm serve gnani/gnani-evon-v3.3-30B-A3B --trust-remote-code \
+  --served-model-name model --reasoning-parser nano_v3 \
   --max-model-len 8192 --gpu-memory-utilization 0.92 --port 8001
+# then in backend/.env:  EVON_MODEL=model
 # 48 GB card: add  --quantization fp8
 ```
 
